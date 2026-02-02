@@ -15,6 +15,13 @@ This library was developed for the **TRIPS (Terran Republic Interstellar Plottin
 
 These requirements led to the extensions documented below, which add 4D noise, spatial utilities for infinite worlds, analytical derivatives for lighting, and advanced algorithms like curl noise for fluid-like motion.
 
+## Roadmap
+
+Planned features for future releases:
+
+- [ ] **Noise Preview Tool** - Interactive visualizer to explore noise generator combinations, tweak parameters in real-time, and see the resulting patterns (heightmaps, textures, 3D volumes)
+- [ ] **Performance Benchmarks** - Comprehensive benchmarking suite similar to the original FastNoiseLite, comparing noise types, fractal modes, and extension algorithms across different scenarios
+
 ## Features
 
 ### Original FastNoiseLite Features
