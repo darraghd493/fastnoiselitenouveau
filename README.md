@@ -15,11 +15,43 @@ This library was developed for the **TRIPS (Terran Republic Interstellar Plottin
 
 These requirements led to the extensions documented below, which add 4D noise, spatial utilities for infinite worlds, analytical derivatives for lighting, and advanced algorithms like curl noise for fluid-like motion.
 
+## Preview Tool
+
+An interactive JavaFX preview tool is included for exploring and visualizing all noise types and features.
+
+### Running the Preview Tool
+
+```bash
+# From the root directory
+mvn install -pl noisegen-lib
+mvn -pl preview-tool javafx:run
+
+# Or from the preview-tool directory
+cd preview-tool
+mvn javafx:run
+```
+
+**Requirements:** JDK 25 with JavaFX 25 (preview tool only; library works with Java 17+)
+
+### Features
+
+- **All Noise Types** - OpenSimplex2, Perlin, Cellular, Value, etc.
+- **All Fractal Types** - FBm, Ridged, PingPong, Billow, HybridMulti
+- **Visualization Modes** - 2D, 3D slice navigation, 4D animation with play/pause
+- **Transform Pipeline** - Build and chain transforms (Ridge, Terrace, Power, etc.)
+- **Spatial Utilities** - Preview Chunked, Tiled, LOD modes
+- **Color Gradients** - Grayscale, Terrain, Heat, Ocean, Custom
+- **Pan/Zoom** - Drag to pan, scroll to zoom, double-click to reset
+- **Export** - Save PNG images, copy Java code snippets to clipboard
+- **Presets** - Quick access to common configurations (Terrain, Clouds, Marble, etc.)
+
+![Preview Tool Screenshot](docs/preview-tool.png)
+
 ## Roadmap
 
 Planned features for future releases:
 
-- [ ] **Noise Preview Tool** - Interactive visualizer to explore noise generator combinations, tweak parameters in real-time, and see the resulting patterns (heightmaps, textures, 3D volumes)
+- [x] **Noise Preview Tool** - Interactive visualizer to explore noise generator combinations, tweak parameters in real-time, and see the resulting patterns (heightmaps, textures, 3D volumes)
 - [x] **Performance Benchmarks** - Comprehensive benchmarking suite similar to the original FastNoiseLite, comparing noise types, fractal modes, and extension algorithms across different scenarios
 
 ## Benchmarks
@@ -180,9 +212,19 @@ float[] velocity = turbulence.curl3D(x, y, z);
 mvn clean compile    # Compile
 mvn test             # Run all tests (499 tests)
 mvn package          # Build JAR
+mvn install          # Install to local repo (needed for preview-tool)
 ```
 
-Requires Java 17+.
+**Note:** This is a multi-module Maven project:
+- `noisegen-lib` - The core noise library (Java 17+)
+- `preview-tool` - The JavaFX preview application (Java 25+)
+
+To build only the library:
+```bash
+mvn -pl noisegen-lib package
+```
+
+Library requires Java 17+. Preview tool requires JDK 25 with JavaFX 25.
 
 ---
 
@@ -532,34 +574,50 @@ byte[] normalMap = deriv.generateNormalMapRGB(width, height, worldSize, heightSc
 ## Package Structure
 
 ```
-com.cognitivedynamics.noisegen/
-├── FastNoiseLite.java       # Main facade (use this!)
-├── NoiseConfig.java         # Configuration holder
-├── NoiseTypes.java          # Enum definitions
-├── Vector2.java, Vector3.java
-├── generators/
-│   ├── NoiseGenerator.java      # Interface
-│   ├── SimplexNoiseGen.java     # OpenSimplex2/2S
-│   ├── Simplex4DNoiseGen.java   # [EXT] 4D Simplex
-│   ├── WaveletNoiseGen.java     # [EXT] Band-limited
-│   ├── CellularNoiseGen.java    # Voronoi
-│   ├── PerlinNoiseGen.java      # Classic Perlin
-│   └── ValueNoiseGen.java       # Value/ValueCubic
-├── fractal/
-│   └── FractalProcessor.java    # FBm, Ridged, PingPong, Billow, HybridMulti
-├── transforms/                   # [EXT]
-│   ├── NoiseTransform.java, RangeTransform.java, PowerTransform.java
-│   ├── RidgeTransform.java, TurbulenceTransform.java, ClampTransform.java
-│   ├── InvertTransform.java, ChainedTransform.java
-│   ├── TerraceTransform.java, QuantizeTransform.java
-├── spatial/                      # [EXT]
-│   ├── ChunkedNoise.java, LODNoise.java, TiledNoise.java
-│   ├── DoublePrecisionNoise.java, SparseConvolutionNoise.java
-│   ├── HierarchicalNoise.java, TurbulenceNoise.java
-├── derivatives/                  # [EXT]
-│   ├── NoiseDerivatives.java, SimplexDerivatives.java
-└── warp/
-    └── DomainWarpProcessor.java
+fastnoiselitenouveau/
+├── pom.xml                      # Parent POM (multi-module)
+├── noisegen-lib/                # Core noise library
+│   ├── pom.xml
+│   └── src/main/Java/com/cognitivedynamics/noisegen/
+│       ├── FastNoiseLite.java       # Main facade (use this!)
+│       ├── NoiseConfig.java         # Configuration holder
+│       ├── NoiseTypes.java          # Enum definitions
+│       ├── Vector2.java, Vector3.java
+│       ├── generators/
+│       │   ├── NoiseGenerator.java      # Interface
+│       │   ├── SimplexNoiseGen.java     # OpenSimplex2/2S
+│       │   ├── Simplex4DNoiseGen.java   # [EXT] 4D Simplex
+│       │   ├── WaveletNoiseGen.java     # [EXT] Band-limited
+│       │   ├── CellularNoiseGen.java    # Voronoi
+│       │   ├── PerlinNoiseGen.java      # Classic Perlin
+│       │   └── ValueNoiseGen.java       # Value/ValueCubic
+│       ├── fractal/
+│       │   └── FractalProcessor.java    # FBm, Ridged, PingPong, Billow, HybridMulti
+│       ├── transforms/                   # [EXT]
+│       │   ├── NoiseTransform.java, RangeTransform.java, PowerTransform.java
+│       │   ├── RidgeTransform.java, TurbulenceTransform.java, ClampTransform.java
+│       │   ├── InvertTransform.java, ChainedTransform.java
+│       │   ├── TerraceTransform.java, QuantizeTransform.java
+│       ├── spatial/                      # [EXT]
+│       │   ├── ChunkedNoise.java, LODNoise.java, TiledNoise.java
+│       │   ├── DoublePrecisionNoise.java, SparseConvolutionNoise.java
+│       │   ├── HierarchicalNoise.java, TurbulenceNoise.java
+│       ├── derivatives/                  # [EXT]
+│       │   ├── NoiseDerivatives.java, SimplexDerivatives.java
+│       └── warp/
+│           └── DomainWarpProcessor.java
+└── preview-tool/                # JavaFX preview application
+    ├── pom.xml
+    └── src/main/java/com/cognitivedynamics/noisegen/preview/
+        ├── NoisePreviewApp.java     # Main JavaFX application
+        ├── MainController.java      # UI controller
+        ├── model/
+        │   └── NoisePreviewModel.java   # Observable settings model
+        ├── view/
+        │   ├── NoiseCanvas.java     # Noise rendering canvas
+        │   └── ControlPanel.java    # Settings sidebar
+        └── util/
+            └── NoiseRenderer.java   # Background rendering
 ```
 
 ---
