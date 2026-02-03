@@ -251,6 +251,56 @@ Example results (Apple M4 Max, 128GB unified memory, Java 17):
 | OpenSimplex2 3D | 53.72 |
 | Progressive 2D (4 oct) | 31.91 |
 
+### Node Graph System [EXT]
+
+#### Source Nodes
+
+| 2D Node Type | M points/s | 3D Node Type | M points/s |
+|--------------|------------|--------------|------------|
+| Simplex | 410.51 | Simplex | 93.75 |
+| Perlin | 589.13 | Perlin | 92.50 |
+| Value | 506.70 | Cellular | 20.11 |
+| ValueCubic | 224.05 | | |
+| Cellular | 116.71 | | |
+| Constant | 1123.66 | | |
+
+#### Fractal Nodes (3D, 4 octaves)
+
+| Fractal Type | M points/s |
+|--------------|------------|
+| FBm | 20.08 |
+| Ridged | 18.39 |
+| Billow | 18.26 |
+| HybridMulti | 18.23 |
+
+#### Combiner & Modifier Nodes (2D)
+
+| Operation | M points/s |
+|-----------|------------|
+| Add (2 nodes) | 218.57 |
+| Multiply (2 nodes) | 215.29 |
+| Min/Max (2 nodes) | ~205 |
+| Blend (3 nodes) | 147.41 |
+| Scale/Clamp/Abs/Invert | ~340 |
+
+#### Complex Configurations
+
+| Configuration | M points/s |
+|---------------|------------|
+| Simple Terrain (FBm + Ridged) | 44.61 |
+| Domain Warped FBm | 36.18 |
+| Multi-Layer Terrain (4 layers) | 13.35 |
+| Cave System (3D cellular + ridged) | 6.23 |
+
+#### BulkEvaluator
+
+| Method | M points/s |
+|--------|------------|
+| fill2D (double[][]) | 39.16 |
+| fill2DFlat (double[]) | 39.21 |
+| fill2DFloat (float[][]) | 37.83 |
+| fill3D (double[][][]) | 18.64 |
+
 ## Features
 
 ### Original FastNoiseLite Features

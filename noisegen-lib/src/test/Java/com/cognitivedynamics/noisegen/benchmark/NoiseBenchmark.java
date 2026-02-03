@@ -67,6 +67,11 @@ public class NoiseBenchmark {
         // Run domain warp benchmarks
         runDomainWarpBenchmarks();
 
+        System.out.println();
+
+        // Run node graph system benchmarks
+        runGraphBenchmarks();
+
         System.out.println("═══════════════════════════════════════════════════════════════════════");
     }
 
@@ -922,5 +927,337 @@ public class NoiseBenchmark {
             }
         }
         return sum;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Node Graph System Benchmarks
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private static void runGraphBenchmarks() {
+        System.out.println("Node Graph System Benchmarks [EXT] (million points/second):");
+        System.out.println("═══════════════════════════════════════════════════════════════════════");
+
+        runGraphSourceBenchmarks();
+        System.out.println();
+        runGraphFractalBenchmarks();
+        System.out.println();
+        runGraphCombinerBenchmarks();
+        System.out.println();
+        runGraphComplexBenchmarks();
+        System.out.println();
+        runBulkEvaluatorBenchmarks();
+    }
+
+    private static void runGraphSourceBenchmarks() {
+        System.out.println("  Source Nodes - 2D (million points/second):");
+        System.out.println("  ───────────────────────────────────────────────────────────────────");
+        System.out.printf("    %-24s %12s%n", "Node Type", "M points/s");
+        System.out.println("    ────────────────────────────────────────");
+
+        var graph = com.cognitivedynamics.noisegen.graph.NoiseGraph.create(1337);
+
+        // Simplex
+        benchmarkGraphNode2D("Simplex", graph.simplex().frequency(0.01));
+
+        // Perlin
+        benchmarkGraphNode2D("Perlin", graph.perlin().frequency(0.01));
+
+        // Value
+        benchmarkGraphNode2D("Value", graph.value().frequency(0.01));
+
+        // ValueCubic
+        benchmarkGraphNode2D("ValueCubic", graph.valueCubic().frequency(0.01));
+
+        // Cellular
+        benchmarkGraphNode2D("Cellular", graph.cellular().frequency(0.01));
+
+        // Constant
+        benchmarkGraphNode2D("Constant", graph.constant(0.5));
+
+        System.out.println();
+        System.out.println("  Source Nodes - 3D (million points/second):");
+        System.out.println("  ───────────────────────────────────────────────────────────────────");
+        System.out.printf("    %-24s %12s%n", "Node Type", "M points/s");
+        System.out.println("    ────────────────────────────────────────");
+
+        // 3D benchmarks
+        benchmarkGraphNode3D("Simplex", graph.simplex().frequency(0.01));
+        benchmarkGraphNode3D("Perlin", graph.perlin().frequency(0.01));
+        benchmarkGraphNode3D("Cellular", graph.cellular().frequency(0.01));
+    }
+
+    private static void runGraphFractalBenchmarks() {
+        System.out.println("  Fractal Nodes - 3D with 4 octaves (million points/second):");
+        System.out.println("  ───────────────────────────────────────────────────────────────────");
+        System.out.printf("    %-24s %12s%n", "Fractal Type", "M points/s");
+        System.out.println("    ────────────────────────────────────────");
+
+        var graph = com.cognitivedynamics.noisegen.graph.NoiseGraph.create(1337);
+        var source = graph.simplex().frequency(0.01);
+
+        benchmarkGraphNode3D("FBm (4 oct)", graph.fbm(source, 4));
+        benchmarkGraphNode3D("Ridged (4 oct)", graph.ridged(source, 4));
+        benchmarkGraphNode3D("Billow (4 oct)", graph.billow(source, 4));
+        benchmarkGraphNode3D("HybridMulti (4 oct)", graph.hybridMulti(source, 4));
+    }
+
+    private static void runGraphCombinerBenchmarks() {
+        System.out.println("  Combiner & Modifier Nodes - 2D (million points/second):");
+        System.out.println("  ───────────────────────────────────────────────────────────────────");
+        System.out.printf("    %-24s %12s%n", "Operation", "M points/s");
+        System.out.println("    ────────────────────────────────────────");
+
+        var graph = com.cognitivedynamics.noisegen.graph.NoiseGraph.create(1337);
+        var nodeA = graph.simplex().frequency(0.01);
+        var nodeB = graph.perlin().frequency(0.02);
+
+        // Combiners
+        benchmarkGraphNode2D("Add (2 nodes)", nodeA.add(nodeB));
+        benchmarkGraphNode2D("Multiply (2 nodes)", nodeA.multiply(nodeB));
+        benchmarkGraphNode2D("Min (2 nodes)", nodeA.min(nodeB));
+        benchmarkGraphNode2D("Max (2 nodes)", nodeA.max(nodeB));
+        benchmarkGraphNode2D("Blend (3 nodes)", graph.blend(nodeA, nodeB, graph.simplex().frequency(0.005)));
+
+        // Modifiers
+        benchmarkGraphNode2D("Scale (domain)", nodeA.scale(2.0));
+        benchmarkGraphNode2D("Multiply (constant)", nodeA.multiply(0.5));
+        benchmarkGraphNode2D("Add (constant)", nodeA.add(0.3));
+        benchmarkGraphNode2D("Clamp", nodeA.clamp(-0.5, 0.5));
+        benchmarkGraphNode2D("Abs", nodeA.abs());
+        benchmarkGraphNode2D("Invert", nodeA.invert());
+    }
+
+    private static void runGraphComplexBenchmarks() {
+        System.out.println("  Complex Graph Configurations - 2D (million points/second):");
+        System.out.println("  ───────────────────────────────────────────────────────────────────");
+        System.out.printf("    %-24s %12s%n", "Configuration", "M points/s");
+        System.out.println("    ────────────────────────────────────────");
+
+        var graph = com.cognitivedynamics.noisegen.graph.NoiseGraph.create(1337);
+
+        // Simple terrain: FBm + Ridged
+        var simpleTerrain = graph.fbm(graph.simplex().frequency(0.01), 4)
+            .add(graph.ridged(graph.simplex().frequency(0.02), 3).multiply(0.3));
+        benchmarkGraphNode2D("Simple Terrain", simpleTerrain);
+
+        // Domain warped
+        var warpSource = graph.simplex().frequency(0.005);
+        var warped = graph.fbm(graph.simplex().frequency(0.01), 4)
+            .warp(warpSource, 30.0);
+        benchmarkGraphNode2D("Domain Warped FBm", warped);
+
+        // Multi-layer terrain (like MultiBiomeTerrain sample)
+        var continental = graph.fbm(graph.simplex().frequency(0.002), 3)
+            .warp(graph.simplex().frequency(0.001), 50.0);
+        var mountains = graph.ridged(graph.simplex().frequency(0.008), 4)
+            .multiply(0.5);
+        var hills = graph.fbm(graph.simplex().frequency(0.02), 3)
+            .multiply(0.3);
+        var detail = graph.fbm(graph.simplex().frequency(0.1), 2)
+            .multiply(0.1);
+        var fullTerrain = continental.add(mountains).add(hills).add(detail).clamp(-1.0, 1.0);
+        benchmarkGraphNode2D("Multi-Layer Terrain", fullTerrain);
+
+        // Cave-like configuration
+        var caverns = graph.cellular(
+                com.cognitivedynamics.noisegen.NoiseTypes.CellularDistanceFunction.EuclideanSq,
+                com.cognitivedynamics.noisegen.NoiseTypes.CellularReturnType.Distance2Sub,
+                0.8
+            ).frequency(0.02).invert().add(0.3);
+        var tunnels = graph.ridged(graph.simplex().frequency(0.03), 4).invert().add(0.5);
+        var caves = caverns.min(tunnels);
+        benchmarkGraphNode3D("Cave System (3D)", caves);
+    }
+
+    private static void runBulkEvaluatorBenchmarks() {
+        System.out.println("  BulkEvaluator Performance (million points/second):");
+        System.out.println("  ───────────────────────────────────────────────────────────────────");
+        System.out.printf("    %-24s %12s%n", "Method", "M points/s");
+        System.out.println("    ────────────────────────────────────────");
+
+        var graph = com.cognitivedynamics.noisegen.graph.NoiseGraph.create(1337);
+        var node = graph.fbm(graph.simplex().frequency(0.01), 4);
+        var bulk = new com.cognitivedynamics.noisegen.graph.util.BulkEvaluator(1337);
+
+        // 2D fill
+        int size2D = 3163; // ~10M points
+        benchmarkBulkFill2D("fill2D (double[][])", bulk, node, size2D);
+        benchmarkBulkFill2DFlat("fill2DFlat (double[])", bulk, node, size2D);
+        benchmarkBulkFill2DFloat("fill2DFloat (float[][])", bulk, node, size2D);
+
+        // 3D fill
+        benchmarkBulkFill3D("fill3D (double[][][])", bulk, node, GRID_SIZE_3D);
+    }
+
+    private static void benchmarkGraphNode2D(String name, com.cognitivedynamics.noisegen.graph.NoiseNode node) {
+        int seed = 1337;
+
+        // Warmup
+        for (int i = 0; i < WARMUP_ITERATIONS; i++) {
+            runGraphNode2DIteration(node, seed);
+        }
+
+        // Benchmark
+        long totalTime = 0;
+        for (int i = 0; i < BENCHMARK_ITERATIONS; i++) {
+            long start = System.nanoTime();
+            runGraphNode2DIteration(node, seed);
+            totalTime += System.nanoTime() - start;
+        }
+
+        double avgTimeMs = (totalTime / BENCHMARK_ITERATIONS) / 1_000_000.0;
+        double pointsPerSecond = (POINTS_PER_ITERATION / avgTimeMs) * 1000.0;
+        double millionPointsPerSecond = pointsPerSecond / 1_000_000.0;
+
+        System.out.printf("    %-24s %12.2f%n", name, millionPointsPerSecond);
+    }
+
+    private static double runGraphNode2DIteration(com.cognitivedynamics.noisegen.graph.NoiseNode node, int seed) {
+        double sum = 0;
+        int idx = 0;
+        for (int y = 0; y < GRID_SIZE && idx < POINTS_PER_ITERATION; y++) {
+            for (int x = 0; x < GRID_SIZE && idx < POINTS_PER_ITERATION; x++) {
+                sum += node.evaluate2D(seed, x, y);
+                idx++;
+            }
+        }
+        return sum;
+    }
+
+    private static void benchmarkGraphNode3D(String name, com.cognitivedynamics.noisegen.graph.NoiseNode node) {
+        int seed = 1337;
+
+        // Warmup
+        for (int i = 0; i < WARMUP_ITERATIONS; i++) {
+            runGraphNode3DIteration(node, seed);
+        }
+
+        // Benchmark
+        long totalTime = 0;
+        for (int i = 0; i < BENCHMARK_ITERATIONS; i++) {
+            long start = System.nanoTime();
+            runGraphNode3DIteration(node, seed);
+            totalTime += System.nanoTime() - start;
+        }
+
+        double avgTimeMs = (totalTime / BENCHMARK_ITERATIONS) / 1_000_000.0;
+        double pointsPerSecond = (POINTS_PER_ITERATION / avgTimeMs) * 1000.0;
+        double millionPointsPerSecond = pointsPerSecond / 1_000_000.0;
+
+        System.out.printf("    %-24s %12.2f%n", name, millionPointsPerSecond);
+    }
+
+    private static double runGraphNode3DIteration(com.cognitivedynamics.noisegen.graph.NoiseNode node, int seed) {
+        double sum = 0;
+        int idx = 0;
+        for (int z = 0; z < GRID_SIZE_3D && idx < POINTS_PER_ITERATION; z++) {
+            for (int y = 0; y < GRID_SIZE_3D && idx < POINTS_PER_ITERATION; y++) {
+                for (int x = 0; x < GRID_SIZE_3D && idx < POINTS_PER_ITERATION; x++) {
+                    sum += node.evaluate3D(seed, x, y, z);
+                    idx++;
+                }
+            }
+        }
+        return sum;
+    }
+
+    private static void benchmarkBulkFill2D(String name,
+            com.cognitivedynamics.noisegen.graph.util.BulkEvaluator bulk,
+            com.cognitivedynamics.noisegen.graph.NoiseNode node, int size) {
+
+        // Warmup
+        for (int i = 0; i < WARMUP_ITERATIONS; i++) {
+            bulk.fill2D(node, size, size, 0, 0, 1.0);
+        }
+
+        // Benchmark
+        long totalTime = 0;
+        int totalPoints = size * size;
+        for (int i = 0; i < BENCHMARK_ITERATIONS; i++) {
+            long start = System.nanoTime();
+            bulk.fill2D(node, size, size, 0, 0, 1.0);
+            totalTime += System.nanoTime() - start;
+        }
+
+        double avgTimeMs = (totalTime / BENCHMARK_ITERATIONS) / 1_000_000.0;
+        double pointsPerSecond = (totalPoints / avgTimeMs) * 1000.0;
+        double millionPointsPerSecond = pointsPerSecond / 1_000_000.0;
+
+        System.out.printf("    %-24s %12.2f%n", name, millionPointsPerSecond);
+    }
+
+    private static void benchmarkBulkFill2DFlat(String name,
+            com.cognitivedynamics.noisegen.graph.util.BulkEvaluator bulk,
+            com.cognitivedynamics.noisegen.graph.NoiseNode node, int size) {
+
+        // Warmup
+        for (int i = 0; i < WARMUP_ITERATIONS; i++) {
+            bulk.fill2DFlat(node, size, size, 0, 0, 1.0);
+        }
+
+        // Benchmark
+        long totalTime = 0;
+        int totalPoints = size * size;
+        for (int i = 0; i < BENCHMARK_ITERATIONS; i++) {
+            long start = System.nanoTime();
+            bulk.fill2DFlat(node, size, size, 0, 0, 1.0);
+            totalTime += System.nanoTime() - start;
+        }
+
+        double avgTimeMs = (totalTime / BENCHMARK_ITERATIONS) / 1_000_000.0;
+        double pointsPerSecond = (totalPoints / avgTimeMs) * 1000.0;
+        double millionPointsPerSecond = pointsPerSecond / 1_000_000.0;
+
+        System.out.printf("    %-24s %12.2f%n", name, millionPointsPerSecond);
+    }
+
+    private static void benchmarkBulkFill2DFloat(String name,
+            com.cognitivedynamics.noisegen.graph.util.BulkEvaluator bulk,
+            com.cognitivedynamics.noisegen.graph.NoiseNode node, int size) {
+
+        // Warmup
+        for (int i = 0; i < WARMUP_ITERATIONS; i++) {
+            bulk.fill2DFloat(node, size, size, 0, 0, 1.0);
+        }
+
+        // Benchmark
+        long totalTime = 0;
+        int totalPoints = size * size;
+        for (int i = 0; i < BENCHMARK_ITERATIONS; i++) {
+            long start = System.nanoTime();
+            bulk.fill2DFloat(node, size, size, 0, 0, 1.0);
+            totalTime += System.nanoTime() - start;
+        }
+
+        double avgTimeMs = (totalTime / BENCHMARK_ITERATIONS) / 1_000_000.0;
+        double pointsPerSecond = (totalPoints / avgTimeMs) * 1000.0;
+        double millionPointsPerSecond = pointsPerSecond / 1_000_000.0;
+
+        System.out.printf("    %-24s %12.2f%n", name, millionPointsPerSecond);
+    }
+
+    private static void benchmarkBulkFill3D(String name,
+            com.cognitivedynamics.noisegen.graph.util.BulkEvaluator bulk,
+            com.cognitivedynamics.noisegen.graph.NoiseNode node, int size) {
+
+        // Warmup
+        for (int i = 0; i < WARMUP_ITERATIONS; i++) {
+            bulk.fill3D(node, size, size, size, 0, 0, 0, 1.0);
+        }
+
+        // Benchmark
+        long totalTime = 0;
+        int totalPoints = size * size * size;
+        for (int i = 0; i < BENCHMARK_ITERATIONS; i++) {
+            long start = System.nanoTime();
+            bulk.fill3D(node, size, size, size, 0, 0, 0, 1.0);
+            totalTime += System.nanoTime() - start;
+        }
+
+        double avgTimeMs = (totalTime / BENCHMARK_ITERATIONS) / 1_000_000.0;
+        double pointsPerSecond = (totalPoints / avgTimeMs) * 1000.0;
+        double millionPointsPerSecond = pointsPerSecond / 1_000_000.0;
+
+        System.out.printf("    %-24s %12.2f%n", name, millionPointsPerSecond);
     }
 }
