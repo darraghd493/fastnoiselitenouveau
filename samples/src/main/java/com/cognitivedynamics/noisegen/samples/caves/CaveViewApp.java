@@ -37,7 +37,7 @@ public class CaveViewApp extends Application {
     private double viewX = 0;
     private double viewZ = 0;
     private double viewScale = 1.0;
-    private double depth = -30;  // Current depth (negative = underground)
+    private double depth = -50;  // Current depth (negative = underground)
 
     // View mode
     private ViewMode viewMode = ViewMode.TOP_DOWN;

@@ -106,6 +106,17 @@ public interface NoiseNode {
     }
 
     /**
+     * Add a constant value to this node's output.
+     *
+     * @param constant The constant to add
+     * @return A new node that adds the constant to the output
+     */
+    default NoiseNode add(double constant) {
+        return new com.cognitivedynamics.noisegen.graph.nodes.combiner.AddNode(
+            this, new com.cognitivedynamics.noisegen.graph.nodes.source.ConstantNode(constant));
+    }
+
+    /**
      * Subtract another node's output from this node's output.
      *
      * @param other The node to subtract

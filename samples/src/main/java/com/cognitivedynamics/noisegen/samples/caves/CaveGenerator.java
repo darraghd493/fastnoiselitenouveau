@@ -46,7 +46,8 @@ public class CaveGenerator {
      * Create a cave generator with default settings.
      */
     public CaveGenerator(int seed) {
-        this(seed, 0.015, 0.04, 0.1, -0.1, 0.2);
+        // Default threshold of 0.0: negative density = cave, positive = rock
+        this(seed, 0.02, 0.03, 0.1, 0.0, 0.2);
     }
 
     /**
@@ -82,17 +83,21 @@ public class CaveGenerator {
      */
     private NoiseNode buildCaverns() {
         // Cellular noise creates bubble-like cavern shapes
+        // Distance2Sub returns 0 to ~0.7 (positive), so we invert and offset
+        // to make cell centers negative (caves) and edges positive (rock)
         NoiseNode cells = graph.cellular(
             CellularDistanceFunction.EuclideanSq,
             CellularReturnType.Distance2Sub,  // Creates interesting cave-like shapes
             0.8  // Jitter
-        ).frequency(cavernFrequency);
+        ).frequency(cavernFrequency)
+         .invert()      // Now: -0.7 to 0 (cell centers are most negative)
+         .add(0.3);     // Now: -0.4 to 0.3 (cell centers still negative = caves)
 
         // Add some FBm variation
         NoiseNode variation = graph.fbm(
             graph.simplex().frequency(cavernFrequency * 0.5),
             3, 2.0, 0.5
-        ).multiply(0.3);
+        ).multiply(0.2);
 
         // Combine
         return cells.add(variation);
@@ -103,13 +108,15 @@ public class CaveGenerator {
      */
     private NoiseNode buildTunnels() {
         // Ridged noise creates narrow passage-like features
+        // Values are 0 to 1, with ridges (edges) at high values
         NoiseNode ridges = graph.ridged(
             graph.simplex().frequency(tunnelFrequency),
             4, 2.0, 0.5
         );
 
-        // Invert so ridges become tunnels (negative = cave)
-        NoiseNode tunnels = ridges.invert();
+        // Invert and offset so ridges become tunnels (negative = cave)
+        // After invert: -1 to 0, then add offset to center around 0
+        NoiseNode tunnels = ridges.invert().add(0.5);  // Now -0.5 to 0.5
 
         // Warp for organic paths
         NoiseNode warpSource = graph.simplex().frequency(tunnelFrequency * 0.3);
@@ -155,25 +162,23 @@ public class CaveGenerator {
         double details = detailNode.evaluate3D(seed + 2000, x, y, z);
         double formations = formationNode.evaluate3D(seed + 3000, x, y, z);
 
-        // Combine layers
-        // Caverns and tunnels work together - either can create cave space
-        double caveContrib = Math.min(caverns, tunnels * 0.8 + tunnelThreshold);
+        // Combine layers - use minimum so either caverns OR tunnels can create caves
+        // Both now output negative values for cave spaces
+        double caveContrib = Math.min(caverns, tunnels);
 
-        // Add detail variation
+        // Add detail variation (small perturbations)
         double density = caveContrib + details;
 
         // Depth factor - caves more common at certain depths
-        // Surface (y near 0) has fewer caves
-        // Mid-depth has most caves
-        // Very deep has fewer but larger caves
         double depthFactor = calculateDepthFactor(y);
         density = density + depthFactor;
 
         // Determine if this is cave or rock
+        // Negative density = cave, positive = rock
         boolean isCave = density < caveThreshold;
 
         // Check for water (caves below a certain depth can have water)
-        boolean isWater = isCave && y < -50 && density < caveThreshold - 0.2;
+        boolean isWater = isCave && y < -70 && density < caveThreshold - 0.15;
 
         // Check for ore veins (rare, in rock only)
         boolean isOre = !isCave && isOreVein(x, y, z);
@@ -196,18 +201,18 @@ public class CaveGenerator {
         // Mid depth (-10 to -100): most caves
         // Deep (-100+): fewer but can still have large caverns
 
-        if (y > -5) {
-            // Near surface - rock layer
-            return 0.3;
-        } else if (y > -20) {
-            // Transition zone
-            return 0.1 * (y + 20) / 15;
-        } else if (y > -100) {
-            // Prime cave zone
-            return -0.1;
+        if (y > -3) {
+            // Very near surface - solid rock layer (no caves)
+            return 0.5;
+        } else if (y > -10) {
+            // Shallow zone - some caves possible
+            return 0.1;
+        } else if (y > -120) {
+            // Prime cave zone - most caves here
+            return 0.0;
         } else {
-            // Deep zone - slightly fewer caves
-            return -0.05;
+            // Very deep zone - slightly fewer caves
+            return 0.05;
         }
     }
 
@@ -298,4 +303,40 @@ public class CaveGenerator {
     public double getDetailFrequency() { return detailFrequency; }
     public double getCaveThreshold() { return caveThreshold; }
     public double getTunnelThreshold() { return tunnelThreshold; }
+
+    /**
+     * Test entry point - prints cave statistics.
+     */
+    public static void main(String[] args) {
+        CaveGenerator caves = new CaveGenerator(1337);
+
+        int caveCount = 0;
+        int rockCount = 0;
+        int total = 0;
+
+        // Sample at depth -50 (prime cave zone)
+        double depth = -50;
+        System.out.printf("Sampling at depth %.0f...%n", depth);
+        for (int x = 0; x < 100; x++) {
+            for (int z = 0; z < 100; z++) {
+                CaveData data = caves.sample(x, depth, z);
+                total++;
+                if (data.isCave()) {
+                    caveCount++;
+                } else {
+                    rockCount++;
+                }
+            }
+        }
+
+        double cavePercent = (caveCount * 100.0) / total;
+        System.out.printf("Caves: %d (%.1f%%), Rock: %d (%.1f%%), Total: %d%n",
+            caveCount, cavePercent, rockCount, 100 - cavePercent, total);
+
+        if (cavePercent > 10 && cavePercent < 60) {
+            System.out.println("SUCCESS: Cave percentage is within expected range (10-60%)");
+        } else {
+            System.out.println("WARNING: Cave percentage may be outside expected range");
+        }
+    }
 }

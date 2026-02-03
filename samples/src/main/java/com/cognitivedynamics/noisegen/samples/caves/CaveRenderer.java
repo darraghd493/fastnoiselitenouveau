@@ -89,17 +89,18 @@ public class CaveRenderer {
             Color toColor(CaveGenerator.CaveData data, double depth) {
                 return switch (data.getMaterial()) {
                     case AIR -> {
-                        // Darken caves based on depth
-                        double brightness = Math.max(0.05, 0.3 + depth * 0.003);
+                        // Dark caves - darker at greater depth
+                        double brightness = Math.max(0.08, 0.25 + depth * 0.002);
                         yield Color.gray(brightness);
                     }
-                    case WATER -> Color.rgb(30, 60, 120);
-                    case ORE -> Color.rgb(180, 150, 50);  // Gold/yellow
+                    case WATER -> Color.rgb(40, 80, 160);
+                    case ORE -> Color.rgb(220, 180, 50);  // Gold/yellow
                     case ROCK -> {
-                        // Vary rock color slightly based on density
+                        // Lighter rock colors for better contrast
                         double d = (data.density() + 1) * 0.5;
-                        int base = 80 + (int)(d * 40);
-                        yield Color.rgb(base, base - 10, base - 20);
+                        int base = 120 + (int)(d * 60);
+                        base = Math.min(200, base);
+                        yield Color.rgb(base, base - 15, base - 25);
                     }
                 };
             }
