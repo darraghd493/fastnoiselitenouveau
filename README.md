@@ -140,6 +140,22 @@ Animated nebula visualization demonstrating 4D noise and curl noise:
 - Adjustable turbulence and frequency parameters
 - Pan and zoom navigation
 
+#### Cave System Generator
+
+3D underground cave network visualization with slice-based exploration:
+
+- **Cellular Noise Caverns** - Bubble-like large cave spaces
+- **Ridged Noise Tunnels** - Connecting passages between caverns
+- **Depth Layers** - Different cave characteristics at different depths
+- **Special Features** - Underground water pools and ore veins
+
+**Features:**
+- Top-down slice view with adjustable depth
+- Cross-section side view
+- Depth quick-navigation (Surface, Shallow, Deep, Abyss)
+- Multiple render modes (Material, Density, Heat Map, Minecraft-style)
+- Pan and zoom navigation
+
 ## Roadmap
 
 Planned features for future releases:
@@ -951,10 +967,14 @@ fastnoiselitenouveau/
         │   ├── MountainViewApp.java     # 3D mountain viewer
         │   ├── MountainTerrain.java     # Alpine terrain generation
         │   └── TerrainMeshBuilder.java  # Heightmap to 3D mesh conversion
-        └── nebula/
-            ├── NebulaViewApp.java       # Animated nebula viewer
-            ├── NebulaGenerator.java     # 4D noise + curl noise generation
-            └── NebulaRenderer.java      # Color palette rendering
+        ├── nebula/
+        │   ├── NebulaViewApp.java       # Animated nebula viewer
+        │   ├── NebulaGenerator.java     # 4D noise + curl noise generation
+        │   └── NebulaRenderer.java      # Color palette rendering
+        └── caves/
+            ├── CaveViewApp.java         # 3D cave slice viewer
+            ├── CaveGenerator.java       # 3D cave network generation
+            └── CaveRenderer.java        # Cave material rendering
 ```
 
 ---

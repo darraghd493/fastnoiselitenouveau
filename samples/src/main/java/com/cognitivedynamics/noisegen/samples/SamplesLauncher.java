@@ -1,5 +1,6 @@
 package com.cognitivedynamics.noisegen.samples;
 
+import com.cognitivedynamics.noisegen.samples.caves.CaveViewApp;
 import com.cognitivedynamics.noisegen.samples.multibiome.MultiBiomeApp;
 import com.cognitivedynamics.noisegen.samples.mountains.MountainViewApp;
 import com.cognitivedynamics.noisegen.samples.nebula.NebulaViewApp;
@@ -56,13 +57,12 @@ public class SamplesLauncher extends Application {
             () -> launchSample(NebulaViewApp.class)
         );
 
-        // Placeholder for future samples
-        Button comingSoon1 = createSampleButton(
-            "Cave System Generator (Coming Soon)",
-            "3D cave network generation using cellular and fractal noise.",
-            null
+        Button cavesBtn = createSampleButton(
+            "Cave System Generator",
+            "3D cave network with slice-based navigation.\n" +
+            "Features cellular noise caverns, tunnels, water, and ore veins.",
+            () -> launchSample(CaveViewApp.class)
         );
-        comingSoon1.setDisable(true);
 
         root.getChildren().addAll(
             title,
@@ -70,7 +70,7 @@ public class SamplesLauncher extends Application {
             multiBiomeBtn,
             mountainsBtn,
             nebulaBtn,
-            comingSoon1
+            cavesBtn
         );
 
         Scene scene = new Scene(root, 500, 520);
