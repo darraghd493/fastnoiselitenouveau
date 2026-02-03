@@ -2,6 +2,7 @@ package com.cognitivedynamics.noisegen.samples;
 
 import com.cognitivedynamics.noisegen.samples.multibiome.MultiBiomeApp;
 import com.cognitivedynamics.noisegen.samples.mountains.MountainViewApp;
+import com.cognitivedynamics.noisegen.samples.nebula.NebulaViewApp;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -48,31 +49,31 @@ public class SamplesLauncher extends Application {
             () -> launchSample(MountainViewApp.class)
         );
 
+        Button nebulaBtn = createSampleButton(
+            "Nebula Generator",
+            "Animated nebula visualization with curl noise and 4D animation.\n" +
+            "Features multiple color palettes and real-time fluid-like motion.",
+            () -> launchSample(NebulaViewApp.class)
+        );
+
         // Placeholder for future samples
         Button comingSoon1 = createSampleButton(
-            "Nebula Generator (Coming Soon)",
-            "Volumetric nebula generation with curl noise and 4D animation.",
-            null
-        );
-        comingSoon1.setDisable(true);
-
-        Button comingSoon2 = createSampleButton(
             "Cave System Generator (Coming Soon)",
             "3D cave network generation using cellular and fractal noise.",
             null
         );
-        comingSoon2.setDisable(true);
+        comingSoon1.setDisable(true);
 
         root.getChildren().addAll(
             title,
             subtitle,
             multiBiomeBtn,
             mountainsBtn,
-            comingSoon1,
-            comingSoon2
+            nebulaBtn,
+            comingSoon1
         );
 
-        Scene scene = new Scene(root, 500, 480);
+        Scene scene = new Scene(root, 500, 520);
         primaryStage.setTitle("FastNoiseLite Nouveau - Samples");
         primaryStage.setScene(scene);
         primaryStage.show();

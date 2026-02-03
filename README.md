@@ -125,6 +125,21 @@ Realistic 3D mountain visualization inspired by FastNoise2's NoiseTool:
 - Adjustable terrain parameters
 - Wireframe mode for mesh visualization
 
+#### Nebula Generator
+
+Animated nebula visualization demonstrating 4D noise and curl noise:
+
+- **4D Animation** - Time evolution using the W dimension of noise
+- **Curl Noise** - Divergence-free flow for fluid-like filament motion
+- **Multiple Layers** - Density, filaments, emission regions, dust lanes
+- **Color Palettes** - Full color, Hydrogen-alpha, Oxygen III, Hubble palette
+
+**Features:**
+- Real-time animation with play/pause controls
+- Multiple color visualization modes
+- Adjustable turbulence and frequency parameters
+- Pan and zoom navigation
+
 ## Roadmap
 
 Planned features for future releases:
@@ -932,10 +947,14 @@ fastnoiselitenouveau/
         │   ├── MultiBiomeTerrain.java   # Layered terrain using node graph
         │   ├── BiomeType.java           # Biome definitions and colors
         │   └── TerrainRenderer.java     # Canvas rendering utilities
-        └── mountains/
-            ├── MountainViewApp.java     # 3D mountain viewer
-            ├── MountainTerrain.java     # Alpine terrain generation
-            └── TerrainMeshBuilder.java  # Heightmap to 3D mesh conversion
+        ├── mountains/
+        │   ├── MountainViewApp.java     # 3D mountain viewer
+        │   ├── MountainTerrain.java     # Alpine terrain generation
+        │   └── TerrainMeshBuilder.java  # Heightmap to 3D mesh conversion
+        └── nebula/
+            ├── NebulaViewApp.java       # Animated nebula viewer
+            ├── NebulaGenerator.java     # 4D noise + curl noise generation
+            └── NebulaRenderer.java      # Color palette rendering
 ```
 
 ---
